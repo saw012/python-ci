@@ -1,0 +1,10 @@
+version: 2
+jobs:
+    build:
+        working_directory: ~/python-ci
+        docker:
+            - image: circleci/python:3.7.5
+        steps:
+            - checkout
+            - run:
+                command: python tests/math-test.py
