@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
     build:
         working_directory: ~/python-ci
@@ -7,4 +7,32 @@ jobs:
         steps:
             - checkout
             - run:
-                command: python tests/math-test.py
+                name: install pipenv
+                command: |
+                    sudo pip install --upgrade pip
+                    sudo pip install flake8
+            - run:
+                name: python linter
+                command: |
+                    flake8 srcs/ tests/ --ignore E402
+            - run:
+                name: python tests
+                command: |
+                    python tests/math_test.py
+            - setup_remote_docker:
+                docker_layer_caching: false
+            - run:
+                name: install docker-cli
+                command: |
+                    sudo apt install docker
+            - run:
+                name: docker build and push
+                command: |
+                    TAG=0.1.$CIRCLE_BUILD_NUM
+                    docker build -t $REPO_NAME/python-test:$TAG .
+                    echo $DOCKER_PASS | docker login $REPO -u $DOCKER_USER --password-stdin
+                    docker push $REPO_NAME/python-test:$TAG
+            - store_test_results:
+                path: ~/python-ci
+            - store_artifacts:
+                path: ~/python-ci
